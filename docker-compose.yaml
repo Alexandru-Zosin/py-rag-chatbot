@@ -1,0 +1,58 @@
+version: "3.9"
+
+volumes:
+  chroma:
+  app_data:
+
+services:
+  db:
+    build:
+      context: ./chatbot_db
+      dockerfile: Dockerfile
+    image: chatbot_db:latest
+    entrypoint: ["/usr/bin/tini", "--"]
+    command: ["bash", "/app/scripts/entrypoint.sh"]
+    volumes:
+      - ./chatbot_db/.env:/app/.env:ro
+      - chroma:/chroma
+      - app_data:/app/data
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/api/v2/heartbeat >/dev/null || curl -fsS http://127.0.0.1:8000/heartbeat >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+
+  chatbot_api:
+    build:
+      context: ./chatbot_api
+      dockerfile: Dockerfile
+      target: dev
+    image: chatbot_api:latest
+    env_file:
+      - ./chatbot_api/.env
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./chatbot_api/app:/app/app:rw
+
+  chatbot_fe:
+    build:
+      context: ./chatbot_fe
+      dockerfile: Dockerfile
+    image: chatbot_fe:latest
+    environment:
+      # This is only for production build-time replacement in vite if needed.
+      # The runtime API base is baked as /api and proxied by nginx to chatbot_api.
+      - VITE_API_BASE=/api
+    depends_on:
+      chatbot_api:
+        condition: service_healthy
+    ports:
+      - "3000:80"
