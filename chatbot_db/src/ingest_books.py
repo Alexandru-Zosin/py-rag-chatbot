@@ -16,7 +16,6 @@ if str(PROJECT_SRC) not in sys.path:
     sys.path.insert(0, str(PROJECT_SRC))
 
 from data.iterators.book_iterator import BooksDataIterator  # noqa: E402
-from models.book import Book  # noqa: E402
 
 import chromadb  # noqa: E402
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction  # noqa: E402

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 import chromadb
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 from app.core.config import settings
