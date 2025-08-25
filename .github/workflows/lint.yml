@@ -1,0 +1,23 @@
+name: Lint Project's Python Code
+
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+
+jobs:
+    lint: # name of the job
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
+              with:
+                python-version: "3.11"
+                cache: "pip"
+            - name: Install UV
+              run: |
+                curl -LsSf https://astral.sh/uv/install.sh | sh
+                echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+            - name: Run Ruff via uvx (ephemeral env, cached)
+              run: uvx ruff check --output-format=github
